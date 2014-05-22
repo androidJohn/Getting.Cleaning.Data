@@ -26,9 +26,16 @@ activityLabels <- read.table(paste(dataDir, "activity_labels.txt", sep = ""))
 
 trainSubject <- read.table(paste(dataDirTrain, "subject_train.txt", sep = ""))
 
+# Make sure all the values are indeed normalized and no NA's
+all(colSums(is.na(xTestDat)) == 0)
+all(colSums(is.na(xTrainDat)) == 0)
+all(xTestDat > 0 | xTestDat < 1)
+all(xTrainDat > 0 | xTrainDat < 1)
 
 
+# Merge the test and training data
+Data <- rbind(xTrainDat, xTestDat)
 
+# Assign column names to the Data headers from featuresList
+colnames(Data) <- featuresList$V2
 
-
-fitData <- read.table(unz(temp, "Dataset.dat"))
