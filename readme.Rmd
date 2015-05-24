@@ -1,0 +1,80 @@
+---
+title: "README"
+author: "John Evans"
+date: "May 24, 2015"
+output: html_document
+---
+
+The script run_analysis.R assumes that you have downloaded the data set from [here,](https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip ) that you have unzipped it and that it is your current working directory.
+
+### Required packages
+dplyr
+tidyr
+
+There is only one script file called run_analysis.R
+
+## Step One
+### Read files;
+- features <- features.txt
+- activity_labels <- activity_labels.txt
+- X_test <- X_test.txt
+- Y_test <- y_test.txt
+- subject_test <- subject_test.txt
+- X_train <- X_train.txt
+- Y_train <- y_train.txt
+- subject_train <- subject_train.txt
+
+## Step Two
+### Extract only columns with mean and std in variable names;
+- col_nums <- grep("(mean|std)", features$V2)
+- features <- features[col_nums, ]
+- X_test <- X_test[, col_nums]
+- X_train <- X_train[, col_nums]
+
+## Step Three
+### Set column names;
+- names(X_test) <- features$V2
+- names(Y_test) <- "Act"
+- names(subject_test) <- "Subject"
+- names(X_train) <- features$V2
+- names(Y_train) <- "Act"
+- names(subject_train) <- "Subject"
+
+## Step Four
+### Build the test and train tables;
+- test_ data <- cbind(subject_ test, Y_ test, X_test)
+- train_ data <- cbind(subject_ train, Y_ train, X_train)
+
+## Step Five
+### Bind the test and train tables together to create one data table;
+- data <- rbind(test_ data, train_data)
+
+## Step Six
+### Give the activities names instead of numbers and get rid of Index column;
+- data <- merge(activity_labels, data, by.x="Index", by.y="Act", all=TRUE)
+- data <- tbl_df(data)
+- data <- select(data, -Index)
+
+## Step Seven
+### Remove variable measurements from Fast Fourier Transform (FFT);
+* data <- select(data, -starts_with("f"))
+
+## Step Eight
+### Cleanup column names;
+* names(data) <- gsub("[-()]", "", names(data))
+* names(data) <- gsub("mean", "Mean", names(data))
+* names(data) <- gsub("std", "Std", names(data))
+
+## Step Nine
+### Reorder columns;
+* data <- select(data, Subject, Activity, tBodyAccMeanX:tBodyGyroJerkMagStd)
+
+## Step Ten
+### clean up!
+* rm("activity_labels", "features", "subject_test", "subject_train", "X_test", "X_train",
+            "Y_test", "Y_train", "col_nums", "test_data", "train_data")
+
+## Step Eleven
+### Start tidying;
+* groupedMeans <- group_by(data, Subject, Activity) %>%
+            summarise_each(funs(mean), starts_with("t"))
